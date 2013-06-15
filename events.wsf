@@ -1,0 +1,79 @@
+<job id="gw2events">
+	<script type="text/javascript">
+    		var html = new ActiveXObject("htmlfile");
+
+    		html.write('<html></html>');
+
+		var window = html.parentWindow;
+    		var navigator = window.navigator;
+    		var document = window.document;
+    		var location = document.location;
+
+    		window.ActiveXObject = ActiveXObject;
+    		var setTimeout = function(func, delay) { return window.setTimeout(func, delay) };
+	</script>
+	<script type="text/javascript" src="json2.js" />
+	<script type="text/javascript" src="jquery-1.9.1.js" />
+        <Script type="text/javascript" src="gw2events.js" />
+	<script type="text/javascript">
+
+		function CheckKarkaQueen(world)
+		{
+			var queenEvents = [ "5282B66A-126F-4DA4-8E9D-0D9802227B6D",
+						"F479B4CF-2E11-457A-B279-90822511B53B",
+						"E1CC6E63-EFFE-4986-A321-95C89EA58C07",
+						"4CF7AA6E-4D84-48A6-A3D1-A91B94CCAD56" ];
+
+
+			for (var i in queenEvents)
+			{
+				var events = api.Events(null, world, queenEvents[i]).events;
+				for (var j in events) {
+					if (events[j].state == "Active") {
+						WScript.Echo("Karka Queen " + api.WorldName(world) + " " + events[j].state + " \"" + api.EventName(queenEvents[i]) + "\"");
+					}
+				}
+			}
+		
+		}
+
+		var $ = window.$;
+    		// 4.
+    		$.support.cors = true;
+
+		var api = new GW2EVENTS(true);
+
+		var eventNames = api.EventNames(null);
+		var worldNames = api.WorldNames(null);
+		var mapNames = api.MapNames(null);
+
+		//var eventIdToCheck = "0723E056-E665-439F-99B7-20385442AD4E"; // "Protect the Cathedral of Zephyrs." - Dwayna
+
+		//var eventIdToCheck = "0372874E-59B7-4A8F-B535-2CF57B8E67E4"; // "Kill the Corrupted High Priestess" - Lyssa
+
+		//var eventIdToCheck = "989A298C-B06B-4E9B-A871-1506A6EE3FEC"; // "Defend the Pact interrupter from Risen attacks." - Melandru
+
+		var eventIdToCheck = "DFBFF5FE-5AF0-4B65-9199-B7CACC945ABD"; // "Ensure that the Pact holds the Gates of Arah." - Arah
+
+		//var eventIdToCheck = "57A8E394-092D-4877-90A5-C238E882C320"; // "Stop the Risen Priest of Grenth from retaking the Cathedral of Silence." - Grenth
+
+		//var eventIdToCheck = "9752677E-FAE7-4F56-A48A-275329095B8A"; // "Hold the Infinity Coil." - CoE
+
+		//var eventIdToCheck = "A1182080-2599-4ACC-918E-A3275610602B"; // "Hold the Gates of Flame against waves of Flame Legion." - CoF
+
+		//var eventIdToCheck = "589B1C41-DD96-4AEE-8A3A-4CC607805B05"; // "Help the Pact hold the Altar of Betrayal from the Risen." - Balthazar
+		
+		for (var i in worldNames) {
+			if (api.IsUSWorld(worldNames[i])) {
+				var events = api.Events(null, worldNames[i].id, eventIdToCheck).events;
+				for (var j in events) {
+					if (events[j].state != "Fail" && events[j].state != "Inactive") {
+						WScript.Echo(api.WorldName(worldNames[i]) + " " + events[j].state + " \"" + api.EventName(eventIdToCheck) + "\"");
+					}				
+				}
+
+				CheckKarkaQueen(worldNames[i].id);
+			}
+		}
+	</script>
+</job>
