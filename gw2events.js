@@ -1,17 +1,34 @@
+// WSH scripts must instantiate this with local = true
 function GW2EVENTS(local,lang)
 {
-	//var _xxr = (window._xxrRequest) ? new window._xxrRequest() : new window.ActiveXObject("Microsoft._xxr");
+	// Constants
+	var _TIMEOUT = 4000; // set timeout to 4s
+	var _SUPPORTED_LANGUAGES = ["en", "fr", "de", "es"];
+	var _USE_JQUERY = false;   // use $.ajax or XHR/XDR directly
+	var DEFAULT_LANGUAGE = 'en'; // default language is 'en'
+	var DEFAULT_WORLD = 1009; // Fort Aspenwood as my default world
+	var UNKNOWN_NAME = "Unknown";  // should probably localize this but...
+
+	// ArenaNet Guild Wars 2 API Constants
+	var URL = "https://api.guildwars2.com/v1/";
+	var EVENT_API = 'events.json?';
+	var WORLD_NAMES_API = 'world_names.json?';
+	var MAP_NAMES_API = 'map_names.json?';
+	var EVENT_NAMES_API = 'event_names.json?';
+	var LANG_PARA = 'lang=';
+	var WORLD_ID_PARA = 'world_id=';
+	var MAP_ID_PARA = 'map_id=';
+	var EVENT_ID_PARA = 'event_id=';
+
+	// member variables
 	var _xxr;
-	var _supportedLanguages = ["en", "fr", "de", "es"];
 	var _worldNames = _mapNames = _eventNames = null;
 	var _data = {};
 	var _callback, _callback_obj;
-	var _blocked = false;
-	var _UseJQuery = true;
-	var _isLocal = false;
+	var _blocked = false;   // if true, it means we have a pending web call
+	var _isLocal = false;   // if true, means we are executing locally in WSH rather than the browser
 
-	//_xxr = createCrossDomainRequest();
-
+    // Expose as Public Methods
     this.EventNames = getEventNames;
 	this.MapNames = getMapNames;
 	this.WorldNames = getWorldNames;
@@ -23,17 +40,19 @@ function GW2EVENTS(local,lang)
 	this.EventName = getEventName;
 	this.IsLocal = IsLocal;
 
-	_lang = (typeof lang !== 'undefined' && IsSupportedLanguage(lang)) ? lang : 'en';
+	// set the language and _isLocal settings
+	_lang = (typeof lang !== 'undefined' && IsSupportedLanguage(lang)) ? lang : DEFAULT_LANGUAGE;
 	IsLocal(local);
+
+	// Public Methods
 
 	function IsLocal(local)
 	{
 		if (typeof local != 'undefined') 
 		{
-			//var temp = _isLocal;
 			_isLocal = local;
 		}
-		_xxr = createCrossDomainRequest();
+		_xxr = createCrossDomainRequest();  // we instantiate the XHR/XDR component here!
 		return _isLocal;
 	}
 
@@ -49,6 +68,9 @@ function GW2EVENTS(local,lang)
 		return (worldId.charAt(0) == '2');
 	}
 
+	// This function will not work in XDR because it uses synchronous access to its NAMES function counterpart.
+	// Workaround: Make sure to call its Names function counterpart first before calling this function, in XDR, so that 
+	// NAMES would be cached and this function would not need to fetch NAMES from the web.
 	function getEventName (eventId)
 	{
 		eventId = typeof eventId == "object" ? eventId.id : eventId;
@@ -58,16 +80,18 @@ function GW2EVENTS(local,lang)
 			return getName(eventNames, eventId);
 		}
 		return false;
-		//return getName(_eventNames.data, eventId);
 	}
 	
+	// if callback is null, it will attempt to perform a synchronous call unless we are using XDR where only async calls are supported
+	// if callback is not null, it will attempt to perform an async call and after the call completes, performs a callback 
+	// on the function parameter with the JSON data as its parameter.
     function getEventNames(callback)
 	{
 		if (!_eventNames)
 		{
 			_eventNames = new Object();
 			_callback_obj = _eventNames;
-			_request(callback, 'event_names.json?', "lang=" + _lang);
+			_request(callback, EVENT_NAMES_API, LANG_PARA + _lang);
 		}
 		else
 		{
@@ -76,6 +100,9 @@ function GW2EVENTS(local,lang)
 		return _eventNames.data;
 	}
 
+	// This function will not work in XDR because it uses synchronous access to its NAMES function counterpart.
+	// Workaround: Make sure to call its Names function counterpart first before calling this function, in XDR, so that 
+	// NAMES would be cached and this function would not need to fetch NAMES from the web.
 	function getMapName (mapId)
 	{
 		mapId = typeof mapId == "object" ? mapId.id : mapId;
@@ -85,16 +112,18 @@ function GW2EVENTS(local,lang)
 			return getName(mapNames, mapId);
 		}
 		return false;
-		//return getName(_mapNames.data, mapId);
 	}
 	
+	// if callback is null, it will attempt to perform a synchronous call unless we are using XDR where only async calls are supported
+	// if callback is not null, it will attempt to perform an async call and after the call completes, performs a callback 
+	// on the function parameter with the JSON data as its parameter.
 	function getMapNames(callback)
 	{
 		if (!_mapNames)
 		{
 			_mapNames = new Object();
 			_callback_obj = _mapNames;
-			_request(callback, 'map_names.json?', "lang=" + _lang);
+			_request(callback, MAP_NAMES_API, LANG_PARA + _lang);
 		}
 		else
 		{
@@ -103,6 +132,9 @@ function GW2EVENTS(local,lang)
 		return _mapNames.data;
 	}
 	
+	// This function will not work in XDR because it uses synchronous access to its NAMES function counterpart.
+	// Workaround: Make sure to call its Names function counterpart first before calling this function, in XDR, so that 
+	// NAMES would be cached and this function would not need to fetch NAMES from the web.
 	function getWorldName (worldId)
 	{
 		worldId = typeof worldId == "object" ? worldId.id : worldId;
@@ -112,16 +144,18 @@ function GW2EVENTS(local,lang)
 			return getName(worldNames, worldId);
 		}
 		return false;
-		//return getName(_worldNames.data, worldId);
 	}
 
+	// if callback is null, it will attempt to perform a synchronous call unless we are using XDR where only async calls are supported
+	// if callback is not null, it will attempt to perform an async call and after the call completes, performs a callback 
+	// on the function parameter with the JSON data as its parameter.
     function getWorldNames(callback)
     {
 		if (!_worldNames)
 		{
 			_worldNames = new Object();
 			_callback_obj = _worldNames;
-			_request(callback, 'world_names.json?', "lang=" + _lang);
+			_request(callback, WORLD_NAMES_API, LANG_PARA + _lang);
 		}
 		else
 		{
@@ -130,14 +164,17 @@ function GW2EVENTS(local,lang)
 		return _worldNames.data;
     }
 
+	// if callback is null, it will attempt to perform a synchronous call unless we are using XDR where only async calls are supported
+	// if callback is not null, it will attempt to perform an async call and after the call completes, performs a callback 
+	// on the function parameter with the JSON data as its parameter.
 	function getEvents(callback, worldId, eventId, mapId)
 	{
 		var param = "", param1 = "", param2 = "";
 
 		if (typeof worldId == "undefined") {
-			worldId = 1009;
+			worldId = DEFAULT_WORLD;
 		}
-		param = "world_id=" + worldId;
+		param = WORLD_ID_PARA + worldId; // we will always supply a world id
 		
 		switch (arguments.length)
 		{
@@ -145,29 +182,34 @@ function GW2EVENTS(local,lang)
 			case 1:
 				// Fall through
 			case 2:
-				return _request(callback, 'events.json?', param);
+				return _request(callback, EVENT_API, param);
 				break;
 				
 			case 3:
-				return _request(callback, 'events.json?', param, "event_id=" + eventId);
+				return _request(callback, EVENT_API, param, EVENT_ID_PARA + eventId);
 				break;
 				
 			default:
-				return _request(callback, 'events.json?', param, "event_id=" + eventId, "map_id=" + mapId);
+				return _request(callback, EVENT_API, param, EVENT_ID_PARA + eventId, MAP_ID_PARA + mapId);
 				break;
 		}
 	}
 	
+	// Private Methods
+
 	function PrivateCallback(data)
 	{
 		if (_callback_obj != null) _callback_obj.data = data;
-		_callback_obj = null;
+		_callback_obj = null; // remember to reset this
+
+		_blocked = false; // remember to turn off blocking BEFORE calling back to the client
+		if (_callback != null) _callback(_data);
 	}
 
 	function IsSupportedLanguage(lang)
 	{		
-		for(var i = 0; i < _supportedLanguages.length; i++) {
-			if(_supportedLanguages[i] === lang) {
+		for(var i = 0; i < _SUPPORTED_LANGUAGES.length; i++) {
+			if(_SUPPORTED_LANGUAGES[i] === lang) {
 				return true;
 			}
 		}
@@ -179,7 +221,7 @@ function GW2EVENTS(local,lang)
 		for (var i in list) {
 			if (list[i].id == id) return list[i].name;
 		}
-		return "Unknown";
+		return UNKNOWN_NAME;
 	}
 
 	// Functions to create xhrs
@@ -203,7 +245,7 @@ function GW2EVENTS(local,lang)
         {
         	request = new ActiveXObject("Msxml2.XMLHTTP");
         }
-        else if ('withCredentials' in new window.XMLHttpRequest()) 
+        else if ('withCredentials' in new XMLHttpRequest()) 
         {
         	/* supports cross-domain requests */
         	request = window.ActiveXObject ?
@@ -250,30 +292,32 @@ function GW2EVENTS(local,lang)
 	function _HttpGet(callback, arg2, args)
 	{
 		_callback = callback;
-		if (_UseJQuery)
+		if (_USE_JQUERY)
 		{
 			_blocked = true;	
-			$.ajax({url: "https://api.guildwars2.com/v1/" + arg2 + args.join("&"), 
-				async: callback != null,
+			$.ajax({url: URL + arg2 + args.join("&"), 
+				async: callback != null && !_isLocal,
 				dataType: "json"
 			}).done(function(d) {
 				_data = d;
 				PrivateCallback(_data);
-				_blocked = false;
-				if (_callback != null) _callback(_data);
 			});
 		}
 		else
 		{
-			if (!_isLocal) _xxr.timeout = 4000; // set timeout to 4s
+			// Because the Desktop Window Manager detects a hang after 5 seconds of unresponsiveness, and IE9 Hang Resistance after 8, 
+			// I would set the timeout property to something under 5 seconds. 
+			if (!_isLocal) _xxr.timeout = _TIMEOUT;
 			if (window.XDomainRequest && !_isLocal)
 			{
+				// IMPORTANT!: XDR does NOT support synchronous web access!
 				_xxr.onload = _JSONParse;
-				_xxr.open("GET", "https://api.guildwars2.com/v1/" + arg2 + args.join("&"));	
+				_xxr.open("GET", URL + arg2 + args.join("&"));	
 			}
 			else
 			{
-				_xxr.open("GET", "https://api.guildwars2.com/v1/" + arg2 + args.join("&"), (!_blocked && callback != null) || (window.XDomainRequest && !_isLocal));	
+				// Use synchronous call if (we are _blocked, or no callback is specified) or we are local
+				_xxr.open("GET", URL + arg2 + args.join("&"), (!_blocked && callback != null) && !_isLocal);	
 				_xxr.onreadystatechange = handler;
 			}
 
@@ -301,8 +345,6 @@ function GW2EVENTS(local,lang)
 	{
 		var parseString = _xxr.responseText;
 		_data = JSON.parse(parseString);
-		PrivateCallback(_data);
-		_blocked = false;
-		if (_callback != null) _callback(_data);		
+		PrivateCallback(_data);		
 	}
 }

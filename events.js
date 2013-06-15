@@ -35,7 +35,6 @@ function fetchNextWorld()
 function start(data)
 {
 	worldNames = data;
-	//api.EventNames(getEventNames);
 	fetchNextWorld();
 }
 

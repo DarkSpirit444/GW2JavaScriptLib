@@ -1,5 +1,7 @@
 <job id="gw2events">
 	<script type="text/javascript">
+		// The code in this script block is to satisfy jquery in a WSH script.
+		// These must be declared BEFORE loading jquery.
     		var html = new ActiveXObject("htmlfile");
 
     		html.write('<html></html>');
@@ -27,6 +29,7 @@
 
 			for (var i in queenEvents)
 			{
+				// we pass null as parameter to ensure synchronous calls
 				var events = api.Events(null, world, queenEvents[i]).events;
 				for (var j in events) {
 					if (events[j].state == "Active") {
@@ -37,12 +40,12 @@
 		
 		}
 
-		var $ = window.$;
-    		// 4.
-    		$.support.cors = true;
+		var $ = window.$;	// to satisfy JQuery
+    		$.support.cors = true;  // to satisfy JQuery
 
-		var api = new GW2EVENTS(true);
+		var api = new GW2EVENTS(true); // WSH scripts must supply true to the first parameter
 
+		// we pass null as parameter to ensure synchronous calls
 		var eventNames = api.EventNames(null);
 		var worldNames = api.WorldNames(null);
 		var mapNames = api.MapNames(null);
@@ -65,6 +68,7 @@
 		
 		for (var i in worldNames) {
 			if (api.IsUSWorld(worldNames[i])) {
+  				// we pass null as parameter to ensure synchronous calls
 				var events = api.Events(null, worldNames[i].id, eventIdToCheck).events;
 				for (var j in events) {
 					if (events[j].state != "Fail" && events[j].state != "Inactive") {
