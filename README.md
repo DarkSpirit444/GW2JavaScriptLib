@@ -24,6 +24,10 @@ If the browser allows the use of XmlHttpRequest, then you can choose to call the
 Otherwise, supply a function parameter for asynchronous callback.  If the browser only allows the use of XDomainRequest then you are stuck with only making 
 asynchronous calls.
 
+#### Licenses
+
+Refer to the LICENSE.md file for license information
+
 #### Author
 
 David Teo
