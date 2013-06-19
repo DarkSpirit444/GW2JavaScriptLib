@@ -32,10 +32,19 @@ function fetchNextWorld()
 	}
 }
 
+// Not needed to prefetch event names unless you using XDR and you can't use synchronous calls 
+// This function will make sure that event names are already cached before we call api.EventName in processWorld function above.
+// If the event names are already cached, there will not be a need to get event names synchronously when you call api.EventName.
+function getEventNames(data)
+{
+	eventNames = data;
+	fetchNextWorld();
+}
+
 function start(data)
 {
 	worldNames = data;
-	fetchNextWorld();
+	api.EventNames(getEventNames);
 }
 
 $(document).ready(function() {
