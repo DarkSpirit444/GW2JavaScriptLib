@@ -30,5 +30,5 @@ Refer to the LICENSE.md file for license information
 
 #### Author
 
-David Teo
+David Teo 
 dspirit@gmail.com
